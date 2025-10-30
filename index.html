@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alex scripts holder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="terminal-container">
+        <div id="terminal">
+            <div id="terminal-text"></div>
+        </div>
+    </div>
 
+    <div id="main-content" class="hidden">
+        <div class="form-container">
+            <div class="flipper">
+                <div class="front">
+                    <div class="form-box login-box">
+                        <h2>Login to your account.</h2>
+                        <form id="login-form">
+                            <div class="input-group">
+                                <label for="login-username">Your username:</label>
+                                <input type="text" id="login-username" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="login-password">Your password:</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <button type="submit" class="form-btn">Login</button>
+                            <p class="form-switch">Don't have an account? <span id="show-register">Please create one.</span></p>
+                        </form>
+                    </div>
+                </div>
+                <div class="back">
+                    <div class="form-box register-box">
+                        <h2>Create your account here.</h2>
+                        <form id="register-form">
+                            <div class="input-group">
+                                <label for="register-username">Type in your username:</label>
+                                <input type="text" id="register-username" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="register-password">Enter your password:</label>
+                                <input type="password" id="register-password" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="find-reason">How did you find this website?</label>
+                                <input type="text" id="find-reason" required>
+                            </div>
+                            <button type="submit" class="form-btn">Create account</button>
+                             <p class="form-switch">Already have an account? <span id="show-login">Please login.</span></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
