@@ -7,23 +7,22 @@
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
+    <header class="header">
+        <div class="header-content">
+            <div class="welcome-message">
+                Welcome, <span id="username-display"></span>
+            </div>
+            <div class="nav-buttons">
+                <button id="admin-btn" class="nav-btn hidden">Admin Panel</button>
+                <button id="logout-btn" class="nav-btn logout">Logout</button>
+            </div>
+        </div>
+    </header>
     <div class="container">
-        <nav class="navbar">
-            <div class="nav-header">
-                <h2>alex scripts</h2>
+        <main class="content">
+            <div id="scripts-container">
+                <h1>alex scripts</h1>
             </div>
-            <div class="nav-content">
-                <div class="welcome-message">
-                    Welcome, <span id="username-display"></span>
-                </div>
-                <div class="nav-buttons">
-                    <a href="admin.html" id="admin-btn" class="nav-btn hidden">Admin Panel</a>
-                    <button id="logout-btn" class="nav-btn logout">Logout</button>
-                </div>
-            </div>
-        </nav>
-        <main class="content" id="scripts-container">
-            <h1>Scripts</h1>
         </main>
     </div>
     <script src="main.js"></script>
