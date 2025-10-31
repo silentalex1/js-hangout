@@ -191,6 +191,16 @@ body {
     font-size: 1em;
 }
 
+.form-group textarea {
+    min-height: 120px;
+    font-family: 'Roboto Mono', monospace;
+    resize: vertical;
+}
+
+#script-code {
+    min-height: 250px;
+}
+
 .submit-btn {
     padding: 15px 30px;
     background-color: var(--accent-color);
