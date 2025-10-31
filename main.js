@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameDisplay = document.getElementById('username-display');
     const logoutBtn = document.getElementById('logout-btn');
     const adminBtn = document.getElementById('admin-btn');
+    const messageBtn = document.getElementById('message-btn');
     const scriptsContainer = document.getElementById('scripts-container');
     const modal = document.getElementById('script-modal');
     const modalTitle = document.getElementById('modal-title');
@@ -17,7 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     usernameDisplay.textContent = loggedInUser;
 
-    if (loggedInUser === 'realalex') {
+    let users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
+    const currentUser = users.find(u => u.username === loggedInUser);
+
+    if (currentUser && currentUser.role === 'admin') {
         adminBtn.classList.remove('hidden');
     }
 
@@ -28,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     adminBtn.addEventListener('click', () => {
         window.location.href = 'admin.html';
+    });
+    
+    messageBtn.addEventListener('click', () => {
+        window.location.href = 'message.html';
     });
 
     modalCloseBtn.addEventListener('click', () => modal.classList.add('hidden'));
@@ -42,43 +50,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
         const scripts = JSON.parse(localStorage.getItem('posted-scripts')) || [];
 
-        const mainCategoryContainer = document.createElement('div');
-        mainCategoryContainer.className = 'category-main-container open';
-        
-        mainCategoryContainer.innerHTML = `
-            <div class="category-header">
-                <h2>Scripts</h2>
-                <span class="category-toggle">▼</span>
-            </div>
-        `;
-        
-        const childrenContainer = document.createElement('div');
-        childrenContainer.className = 'category-children';
-
         categories.forEach(category => {
             const categoryScripts = scripts.filter(s => s.category === category);
-            if (categoryScripts.length > 0) {
-                categoryScripts.forEach(script => {
-                    const scriptCard = document.createElement('div');
-                    scriptCard.className = 'script-card';
-                    scriptCard.innerHTML = `
-                        <h3>${script.name}</h3>
-                        <p>${script.description}</p>
-                        <div class="script-actions">
-                            <button class="script-btn view-btn" data-script-id="${script.id}">View Script</button>
-                            <button class="script-btn copy-btn" data-script-id="${script.id}">Copy Script</button>
-                        </div>
-                    `;
-                    childrenContainer.appendChild(scriptCard);
-                });
-            }
-        });
-        
-        mainCategoryContainer.appendChild(childrenContainer);
-        scriptsContainer.appendChild(mainCategoryContainer);
-        
-        mainCategoryContainer.querySelector('.category-header').addEventListener('click', () => {
-            mainCategoryContainer.classList.toggle('open');
+            if (categoryScripts.length === 0) return;
+
+            const mainCategoryContainer = document.createElement('div');
+            mainCategoryContainer.className = 'category-main-container open';
+            
+            mainCategoryContainer.innerHTML = `
+                <div class="category-header">
+                    <h2>${category}</h2>
+                    <span class="category-toggle">▼</span>
+                </div>
+            `;
+            
+            const childrenContainer = document.createElement('div');
+            childrenContainer.className = 'category-children';
+
+            categoryScripts.forEach(script => {
+                const scriptCard = document.createElement('div');
+                scriptCard.className = 'script-card';
+                scriptCard.innerHTML = `
+                    <h3>${script.name}</h3>
+                    <p>${script.description}</p>
+                    <div class="script-actions">
+                        <button class="script-btn view-btn" data-script-id="${script.id}">View Script</button>
+                        <button class="script-btn copy-btn" data-script-id="${script.id}">Copy Script</button>
+                    </div>
+                `;
+                childrenContainer.appendChild(scriptCard);
+            });
+            
+            mainCategoryContainer.appendChild(childrenContainer);
+            scriptsContainer.appendChild(mainCategoryContainer);
+            
+            mainCategoryContainer.querySelector('.category-header').addEventListener('click', () => {
+                mainCategoryContainer.classList.toggle('open');
+            });
         });
 
         attachScriptButtonListeners();
