@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono&display=swap');
+
+:root {
+    --primary-bg: #1a1a1a;
+    --secondary-bg: #2b2b2b;
+    --primary-text: #e0e0e0;
+    --border-color: #444;
+    --accent-color: #007bff;
+    --input-bg: #333;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+}
+
+#passcode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.passcode-box {
+    background-color: var(--secondary-bg);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.passcode-box h2 {
+    margin-bottom: 10px;
+}
+
+.passcode-box p {
+    margin-bottom: 20px;
+    color: #aaa;
+}
+
+#admin-passcode {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--primary-text);
+    font-size: 1em;
+}
+
+.passcode-box button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+#admin-panel {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: var(--secondary-bg);
+    position: fixed;
+    padding: 20px;
+    border-right: 1px solid var(--border-color);
+}
+
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.nav-button {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--primary-text);
+    text-align: left;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.nav-button:hover, .nav-button.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+#admin-content {
+    margin-left: 250px;
+    padding: 40px;
+    width: calc(100% - 250px);
+}
+
+.content-section {
+    display: none;
+}
+.content-section.visible {
+    display: block;
+}
+
+.content-section h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+}
+
+.user-list, .form-group {
+    margin-top: 20px;
+}
+
+.user-item {
+    background-color: var(--secondary-bg);
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+}
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--primary-text);
+    font-size: 1em;
+}
+
+.form-group textarea {
+    min-height: 150px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.submit-btn {
+    padding: 15px 30px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
