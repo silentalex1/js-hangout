@@ -11,11 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return btoa(encoded.split('').reverse().join(''));
     };
     const adminPasscode = toughEncode('luauadmin$$123');
+    const loggedInUser = sessionStorage.getItem('loggedInUser');
 
-    if (sessionStorage.getItem('loggedInUser') !== 'realalex') {
+    if (!loggedInUser) {
         window.location.href = 'index.html';
         return;
     }
+
+    database.ref(`users/${loggedInUser}/role`).get().then(snapshot => {
+        if (!snapshot.exists() || snapshot.val() !== 'admin') {
+            window.location.href = 'main.html';
+        }
+    });
     
     if (sessionStorage.getItem('adminAuthenticated')) {
         passcodeOverlay.classList.add('hidden');
@@ -50,42 +57,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showVerifyAccounts() {
         adminContent.innerHTML = '';
-        const users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        const admins = users.filter(u => u.role === 'admin').length;
-        const mods = users.filter(u => u.role === 'mod').length;
+        const usersRef = database.ref('users');
 
-        const section = document.createElement('div');
-        section.innerHTML = `
-            <h2>Account Statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="value">${users.length}</div><div class="label">Total Accounts</div></div>
-                <div class="stat-card"><div class="value">${admins}</div><div class="label">Admins</div></div>
-                <div class="stat-card"><div class="value">${mods}</div><div class="label">Mods</div></div>
-            </div>
-            <div class="user-list-container">
-                <h3>Registered Usernames</h3>
-                <div class="user-list">${users.map(user => `
-                    <div class="user-item">
-                        <span>
-                            ${user.username}
-                            ${user.role === 'admin' ? '<span class="role-badge">Admin</span>' : ''}
-                            ${user.role === 'mod' ? '<span class="role-badge mod">Mod</span>' : ''}
-                        </span>
-                        ${user.username !== 'realalex' ? `
-                        <div class="user-actions">
-                            <button class="user-actions-button">&vellip;</button>
-                            <div class="actions-dropdown">
-                                <button class="role-change-btn" data-username="${user.username}" data-role="admin">Make Admin</button>
-                                <button class="role-change-btn" data-username="${user.username}" data-role="mod">Make Mod</button>
-                                <button class="role-change-btn" data-username="${user.username}" data-role="user">Make User</button>
-                            </div>
-                        </div>` : ''}
-                    </div>`).join('')}
+        usersRef.get().then((snapshot) => {
+            const users = snapshot.val() || {};
+            const userList = Object.entries(users);
+            const admins = userList.filter(([name, data]) => data.role === 'admin').length;
+            const mods = userList.filter(([name, data]) => data.role === 'mod').length;
+
+            const section = document.createElement('div');
+            section.innerHTML = `
+                <h2>Account Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="value">${userList.length}</div><div class="label">Total Accounts</div></div>
+                    <div class="stat-card"><div class="value">${admins}</div><div class="label">Admins</div></div>
+                    <div class="stat-card"><div class="value">${mods}</div><div class="label">Mods</div></div>
                 </div>
-            </div>
-        `;
-        adminContent.appendChild(section);
-        attachUserActionListeners();
+                <div class="user-list-container">
+                    <h3>Registered Usernames</h3>
+                    <div class="user-list"></div>
+                </div>
+            `;
+            
+            const userListHTML = userList.map(([username, data]) => `
+                <div class="user-item">
+                    <span>
+                        ${username}
+                        ${data.role === 'admin' ? '<span class="role-badge">Admin</span>' : ''}
+                        ${data.role === 'mod' ? '<span class="role-badge mod">Mod</span>' : ''}
+                    </span>
+                    ${username !== 'realalex' ? `
+                    <div class="user-actions">
+                        <button class="user-actions-button">&vellip;</button>
+                        <div class="actions-dropdown">
+                            <button class="role-change-btn" data-username="${username}" data-role="admin">Make Admin</button>
+                            <button class="role-change-btn" data-username="${username}" data-role="mod">Make Mod</button>
+                            <button class="role-change-btn" data-username="${username}" data-role="user">Make User</button>
+                        </div>
+                    </div>` : ''}
+                </div>`).join('');
+            
+            section.querySelector('.user-list').innerHTML = userListHTML;
+            adminContent.appendChild(section);
+            attachUserActionListeners();
+        });
     }
 
     function attachUserActionListeners() {
@@ -97,17 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 dropdown.style.display = isVisible ? 'none' : 'block';
             });
         });
+
         document.querySelectorAll('.role-change-btn').forEach(button => {
             button.addEventListener('click', e => {
                 const username = e.target.dataset.username;
                 const role = e.target.dataset.role;
-                let users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-                const userIndex = users.findIndex(u => u.username === username);
-                if (userIndex !== -1) {
-                    users[userIndex].role = role;
-                    localStorage.setItem('alex-script-users', JSON.stringify(users));
+                database.ref(`users/${username}/role`).set(role).then(() => {
                     showVerifyAccounts();
-                }
+                });
             });
         });
     }
@@ -136,6 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
         const select = document.getElementById('script-category');
         const list = document.getElementById('category-list');
+        if (!select || !list) return;
+
         select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
         list.innerHTML = categories.map(cat => `
             <div class="category-item">
@@ -143,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="remove-category-btn" data-category="${cat}">Remove</button>
             </div>
         `).join('');
+
         document.querySelectorAll('.remove-category-btn').forEach(button => {
             button.addEventListener('click', e => {
                 const categoryToRemove = e.target.dataset.category;
@@ -179,6 +194,4 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
         showPostScripts();
     }
-});```
-
-*The response is too long. I will provide the main page and new message files in the next response.*
+});
