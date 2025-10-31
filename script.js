@@ -7,18 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const showLogin = document.getElementById('show-login');
     const registerForm = document.getElementById('register-form');
     const loginForm = document.getElementById('login-form');
-
-    const toughEncode = (str) => {
-        let secret = 5;
-        let encoded = str.split('').map(char => String.fromCharCode(char.charCodeAt(0) + secret)).join('');
-        return btoa(encoded.split('').reverse().join(''));
-    };
-
-    const toughDecode = (encodedStr) => {
-        let secret = 5;
-        let decoded = atob(encodedStr).split('').reverse().join('');
-        return decoded.split('').map(char => String.fromCharCode(char.charCodeAt(0) - secret)).join('');
-    };
+    const loginError = document.getElementById('login-error');
+    const registerError = document.getElementById('register-error');
 
     const lines = [
         "> Initializing alex useful scripts..",
@@ -27,16 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     let lineIndex = 0;
     let charIndex = 0;
-
-    function initUsers() {
-        if (!localStorage.getItem('alex-script-users')) {
-            const adminUser = {
-                username: 'realalex',
-                password: toughEncode('Tiptop4589$$')
-            };
-            localStorage.setItem('alex-script-users', JSON.stringify([adminUser]));
-        }
-    }
 
     function typeLine() {
         const cursor = '<span class="cursor"></span>';
@@ -70,52 +50,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        registerError.textContent = '';
         const username = document.getElementById('register-username').value.trim();
         const password = document.getElementById('register-password').value;
         const reason = document.getElementById('find-reason').value;
 
-        let users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        const userExists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
-
-        if (userExists) {
-            alert('Username is already taken. Please choose another one.');
+        if (username.length < 3) {
+            registerError.textContent = 'Username must be at least 3 characters.';
             return;
         }
 
-        users.push({ username, password: toughEncode(password) });
-        localStorage.setItem('alex-script-users', JSON.stringify(users));
+        const usersRef = database.ref('users/' + username);
+        usersRef.get().then((snapshot) => {
+            if (snapshot.exists()) {
+                registerError.textContent = 'Username is already taken.';
+            } else {
+                usersRef.set({ role: 'user' });
+                
+                let localUsers = JSON.parse(localStorage.getItem('alex-script-logins')) || [];
+                localUsers.push({ username, password: btoa(password) });
+                localStorage.setItem('alex-script-logins', JSON.stringify(localUsers));
 
-        sendToDiscord(username, reason);
-        
-        sessionStorage.setItem('loggedInUser', username);
-        window.location.href = 'main.html';
+                sendToDiscord(username, reason);
+                sessionStorage.setItem('loggedInUser', username);
+                window.location.href = 'main.html';
+            }
+        });
     });
 
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        loginError.textContent = '';
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
         
-        const users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        const foundUser = users.find(user => {
-            try {
-                return user.username === username && toughDecode(user.password) === password;
-            } catch (error) {
-                return false;
-            }
-        });
+        const localUsers = JSON.parse(localStorage.getItem('alex-script-logins')) || [];
+        const foundUser = localUsers.find(user => user.username === username && atob(user.password) === password);
 
         if (foundUser) {
             sessionStorage.setItem('loggedInUser', username);
             window.location.href = 'main.html';
         } else {
-            alert('Invalid username or password.');
+            loginError.textContent = 'Invalid username or password.';
         }
     });
 
     function sendToDiscord(username, reason) {
         const webhookUrl = "https://discord.com/api/webhooks/1433590384545501194/_EIJPFIGmv_T3lL4zx00zP1QdalIamTApOlGCMDAlKKYL9eW3z2vIzjjLcJVwrcYmZ8K";
-        
         const now = new Date();
         const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
         const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
@@ -141,6 +122,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(error => console.error('Error sending webhook:', error));
     }
     
-    initUsers();
     setTimeout(typeLine, 1000);
 });
