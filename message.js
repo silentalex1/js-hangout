@@ -18,20 +18,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const userPanelName = document.getElementById('user-panel-name');
     const userAvatar = document.getElementById('user-avatar');
 
-    let allUsers = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-    let currentUser = allUsers.find(u => u.username === loggedInUser);
-    let activeChannel = '#announcements';
+    let allUsers = JSON.parse(localStorage.getItem('alex-script-logins')) || [];
+    let currentUserRole = 'user';
+    let activeChannel = 'announcements';
 
     userPanelName.textContent = loggedInUser;
     userAvatar.textContent = loggedInUser.charAt(0).toUpperCase();
+    
+    database.ref(`users/${loggedInUser}/role`).get().then(snapshot => {
+        if (snapshot.exists()) {
+            currentUserRole = snapshot.val();
+        }
+        switchChannel(activeChannel);
+        renderDms();
+    });
 
-    function renderMessages() {
+    function listenForMessages() {
+        const messagesRef = database.ref(`messages/${activeChannel}`);
         messagesContainer.innerHTML = '';
-        const allMessages = JSON.parse(localStorage.getItem('alex-script-messages')) || [];
-        const channelMessages = allMessages.filter(msg => msg.channel === activeChannel);
         let lastAuthor = null;
 
-        channelMessages.forEach(msg => {
+        messagesRef.off();
+        messagesRef.on('child_added', snapshot => {
+            const msg = snapshot.val();
             const isGrouped = msg.author === lastAuthor;
             const msgElement = document.createElement('div');
             msgElement.classList.add('message');
@@ -49,23 +58,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${msg.author === loggedInUser ? `
                 <div class="message-actions">
-                    <button class="delete-btn" data-id="${msg.id}">Delete</button>
+                    <button class="delete-btn" data-id="${snapshot.key}">Delete</button>
                 </div>` : ''}
             `;
             messagesContainer.appendChild(msgElement);
             lastAuthor = msg.author;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        checkPermissions();
+
+        messagesRef.on('child_removed', snapshot => {
+            const msgId = snapshot.key;
+            const elementToRemove = document.querySelector(`.delete-btn[data-id="${msgId}"]`);
+            if (elementToRemove) {
+                elementToRemove.closest('.message').remove();
+            }
+        });
     }
 
-    // All other functions (checkPermissions, messageForm submit, etc.) remain the same
-    // from the previous version, as their logic is still correct. I have included them
-    // here for completeness.
-
     function checkPermissions() {
-        const canPost = !(activeChannel === '#announcements' && (!currentUser.role || (currentUser.role !== 'admin' && currentUser.role !== 'mod')));
-        messageInput.placeholder = canPost ? `Message ${channelNameHeader.textContent}` : 'You cannot send messages here.';
+        const canPost = !(activeChannel === 'announcements' && (currentUserRole !== 'admin' && currentUserRole !== 'mod'));
+        let channelDisplayName = activeChannel.startsWith('dm-') ? `@ ${activeChannel.replace('dm-', '').replace(loggedInUser, '').replace('-', '')}` : `# ${activeChannel}`;
+        messageInput.placeholder = canPost ? `Message ${channelDisplayName}` : 'You cannot send messages here.';
         messageInput.disabled = !canPost;
     }
 
@@ -74,26 +87,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const content = messageInput.value.trim();
         if (!content || messageInput.disabled) return;
 
-        let allMessages = JSON.parse(localStorage.getItem('alex-script-messages')) || [];
-        allMessages.push({
-            id: Date.now(),
-            channel: activeChannel,
+        database.ref(`messages/${activeChannel}`).push({
             author: loggedInUser,
             content: content,
             timestamp: new Date().toISOString()
         });
-        localStorage.setItem('alex-script-messages', JSON.stringify(allMessages));
         messageInput.value = '';
-        renderMessages();
     });
 
     messagesContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-btn')) {
-            const allMessages = JSON.parse(localStorage.getItem('alex-script-messages')) || [];
-            const msgId = Number(e.target.dataset.id);
-            const updatedMessages = allMessages.filter(msg => msg.id !== msgId);
-            localStorage.setItem('alex-script-messages', JSON.stringify(updatedMessages));
-            renderMessages();
+            const msgId = e.target.dataset.id;
+            database.ref(`messages/${activeChannel}/${msgId}`).remove();
         }
     });
 
@@ -103,13 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeEl = document.querySelector(`[data-channel-id="${channelId}"]`);
         if(activeEl) activeEl.classList.add('active');
         
-        let name = channelId;
-        if (name.startsWith('dm-')) {
-            const otherUser = name.replace('dm-', '').replace(loggedInUser, '').replace('-', '');
+        let name = `# ${channelId}`;
+        if (channelId.startsWith('dm-')) {
+            const otherUser = channelId.replace('dm-', '').replace(loggedInUser, '').replace('-', '');
             name = `@ ${otherUser}`;
         }
         channelNameHeader.textContent = name;
-        renderMessages();
+        listenForMessages();
+        checkPermissions();
     }
 
     channelsList.addEventListener('click', (e) => {
@@ -139,42 +145,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const participants = [loggedInUser, targetUser].sort();
         const dmId = `dm-${participants.join('-')}`;
         
-        let dms = JSON.parse(localStorage.getItem('alex-script-dms')) || [];
-        if (!dms.some(dm => dm.id === dmId)) {
-            dms.push({ id: dmId, participants });
-            localStorage.setItem('alex-script-dms', JSON.stringify(dms));
-        }
+        database.ref(`dms/${loggedInUser}/${dmId}`).set(true);
+        database.ref(`dms/${targetUser}/${dmId}`).set(true);
 
-        renderDms();
         switchChannel(dmId);
         dmModal.classList.add('hidden');
         dmUsernameInput.value = '';
     });
     
     function renderDms() {
-        dmChannelsContainer.innerHTML = '';
-        const dms = JSON.parse(localStorage.getItem('alex-script-dms')) || [];
-        dms.forEach(dm => {
-            if (dm.participants.includes(loggedInUser)) {
-                const otherUser = dm.participants.find(p => p !== loggedInUser);
+        const dmsRef = database.ref(`dms/${loggedInUser}`);
+        dmsRef.on('value', snapshot => {
+            dmChannelsContainer.innerHTML = '';
+            const dms = snapshot.val() || {};
+            Object.keys(dms).forEach(dmId => {
+                const otherUser = dmId.replace('dm-', '').replace(loggedInUser, '').replace('-', '');
                 const dmEl = document.createElement('div');
                 dmEl.className = 'channel-item';
-                dmEl.dataset.channelId = dm.id;
+                dmEl.dataset.channelId = dmId;
                 dmEl.innerHTML = `
                     <div class="user-avatar" style="width:32px; height:32px; margin-right:10px;">${otherUser.charAt(0).toUpperCase()}</div>
                     <span>${otherUser}</span>`;
                 dmChannelsContainer.appendChild(dmEl);
-            }
+            });
         });
     }
-
-    window.addEventListener('storage', (event) => {
-        if (event.key === 'alex-script-messages' || event.key === 'alex-script-dms') {
-            renderMessages();
-            renderDms();
-        }
-    });
-
-    renderDms();
-    renderMessages();
 });
