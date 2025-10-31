@@ -37,6 +37,7 @@
                                 <label for="login-password">Your password:</label>
                                 <input type="password" id="login-password" required>
                             </div>
+                            <p class="error-message" id="login-error"></p>
                             <button type="submit" class="form-btn">Login</button>
                             <p class="form-switch">Don't have an account? <span id="show-register">Please create one.</span></p>
                         </form>
@@ -58,6 +59,7 @@
                                 <label for="find-reason">How did you find this website?</label>
                                 <input type="text" id="find-reason" required>
                             </div>
+                            <p class="error-message" id="register-error"></p>
                             <button type="submit" class="form-btn">Create account</button>
                              <p class="form-switch">Already have an account? <span id="show-login">Please login.</span></p>
                         </form>
@@ -67,6 +69,9 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
