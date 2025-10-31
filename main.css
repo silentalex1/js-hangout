@@ -7,6 +7,7 @@
     --primary-text: #e0e0e0;
     --border-color: #404249;
     --accent-color: #5865F2;
+    --success-color: #28a745;
     --logout-red: #dc3545;
 }
 
@@ -63,6 +64,8 @@ body {
 
 #admin-btn { background-color: var(--accent-color); }
 #admin-btn:hover { background-color: #4752c4; }
+.message { background-color: var(--success-color); }
+.message:hover { background-color: #218838; }
 .logout { background-color: var(--logout-red); }
 .logout:hover { background-color: #c82333; }
 
@@ -76,6 +79,7 @@ body {
     background-color: var(--secondary-bg);
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    margin-bottom: 20px;
 }
 
 .category-header {
@@ -102,10 +106,12 @@ body {
 .category-children {
     padding: 0 20px 20px 20px;
     display: none;
+    border-top: 1px solid var(--border-color);
 }
 
 .category-main-container.open .category-children {
     display: block;
+    padding-top: 10px;
 }
 
 .script-card {
