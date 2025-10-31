@@ -94,15 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function showPostScripts() {
         adminContent.innerHTML = '';
-        const categories = JSON.parse(localStorage.getItem('script-categories')) || ['Lua/luau scripts', 'JS Bookmarklet scripts', 'Website projects'];
+        const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
         
         const section = document.createElement('div');
         section.innerHTML = `
             <h2>Post a New Script</h2>
             <form id="post-script-form">
                 <div class="form-group">
-                    <label for="script-name">Script Name:</label>
+                    <label for="script-name">Script Title:</label>
                     <input type="text" id="script-name" required>
+                </div>
+                 <div class="form-group">
+                    <label for="script-description">Script Description:</label>
+                    <textarea id="script-description" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="script-category">Category:</label>
@@ -113,6 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
                  <div class="form-group">
                     <label for="new-category">Or Add New Category:</label>
                     <input type="text" id="new-category" placeholder="Leave blank to use existing">
+                </div>
+                <div class="form-group">
+                    <label for="script-code">Script Code:</label>
+                    <textarea id="script-code" required></textarea>
                 </div>
                 <button type="submit" class="submit-btn">Post Script</button>
             </form>
@@ -125,11 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleScriptPost(e) {
         e.preventDefault();
         const name = document.getElementById('script-name').value;
+        const description = document.getElementById('script-description').value;
+        const code = document.getElementById('script-code').value;
         const newCategory = document.getElementById('new-category').value.trim();
         let selectedCategory = document.getElementById('script-category').value;
         
         if (newCategory) {
-            let categories = JSON.parse(localStorage.getItem('script-categories')) || ['Lua/luau scripts', 'JS Bookmarklet scripts', 'Website projects'];
+            let categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
             if (!categories.includes(newCategory)) {
                 categories.push(newCategory);
                 localStorage.setItem('script-categories', JSON.stringify(categories));
@@ -138,10 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const scripts = JSON.parse(localStorage.getItem('posted-scripts')) || [];
-        scripts.push({
-            name: name,
+        scripts.unshift({
+            name,
+            description,
+            code,
             category: selectedCategory,
-            date: new Date().toISOString()
+            id: Date.now()
         });
         localStorage.setItem('posted-scripts', JSON.stringify(scripts));
         
