@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messaging - alex scripts holder</title>
+    <link rel="stylesheet" href="message.css">
+</head>
+<body>
+    <div class="chat-container">
+        <aside class="sidebar">
+            <div class="channels-list">
+                <h3>Channels</h3>
+                <div class="channel-item active" data-channel-id="#announcements"># announcements</div>
+                <div class="channel-item" data-channel-id="#public-chat"># public chat</div>
+            </div>
+            <div class="dms-list">
+                <h3>Direct Messages <button id="new-dm-btn">+</button></h3>
+                <div id="dm-channels-container"></div>
+            </div>
+        </aside>
+        <main class="chat-main">
+            <header class="chat-header">
+                <h2 id="current-channel-name"># announcements</h2>
+            </header>
+            <div class="messages-container" id="messages-container">
+            </div>
+            <footer class="chat-footer">
+                <form id="message-form">
+                    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                    <button type="submit">Send</button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <div id="dm-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h3>Who would you like to message?</h3>
+            <p>Must be a verified user. Format: &lt;@username&gt;</p>
+            <form id="dm-form">
+                <input type="text" id="dm-username-input" placeholder="<@username>">
+                <button type="submit">Start DM</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="message.js"></script>
+</body>
+</html>
