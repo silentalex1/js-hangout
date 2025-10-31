@@ -5,7 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminContent = document.getElementById('admin-content');
     const navButtons = document.querySelectorAll('.nav-button');
 
-    const adminPasscode = 'bHVhdWFkbWluJCQxMjM=';
+    const toughEncode = (str) => {
+        let secret = 5;
+        let encoded = str.split('').map(char => String.fromCharCode(char.charCodeAt(0) + secret)).join('');
+        return btoa(encoded.split('').reverse().join(''));
+    };
+
+    const adminPasscode = toughEncode('luauadmin$$123');
 
     if (sessionStorage.getItem('loggedInUser') !== 'realalex') {
         window.location.href = 'index.html';
@@ -21,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     passcodeForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const input = document.getElementById('admin-passcode').value;
-        if (btoa(input) === adminPasscode) {
+        if (toughEncode(input) === adminPasscode) {
             sessionStorage.setItem('adminAuthenticated', 'true');
             passcodeOverlay.classList.add('hidden');
             adminPanel.classList.remove('hidden');
@@ -39,29 +45,51 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             navButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-
             const target = button.getAttribute('data-target');
-            if (target === 'verify-accounts') {
-                showVerifyAccounts();
-            } else if (target === 'post-scripts') {
-                showPostScripts();
-            }
+            if (target === 'verify-accounts') showVerifyAccounts();
+            else if (target === 'post-scripts') showPostScripts();
         });
     });
 
     function showVerifyAccounts() {
         adminContent.innerHTML = '';
         const users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        
+        const totalUsers = users.length;
+        const adminUsers = users.filter(u => u.username === 'realalex').length;
+        const regularUsers = totalUsers - adminUsers;
+
         const section = document.createElement('div');
         section.innerHTML = `
-            <h2>Verified Accounts</h2>
-            <p>Total registered accounts: ${users.length}</p>
-            <div class="user-list">
-                ${users.map(user => `<div class="user-item">${user.username}</div>`).join('')}
+            <h2>Account Statistics</h2>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <label>Total Accounts</label>
+                    <div class="bar-background">
+                        <div class="bar" id="total-bar"><span>${totalUsers}</span></div>
+                    </div>
+                </div>
+                 <div class="stat-item">
+                    <label>Regular Users</label>
+                    <div class="bar-background">
+                        <div class="bar" id="regular-bar"><span>${regularUsers}</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-list-container">
+                <h3>Registered Usernames</h3>
+                <div class="user-list">
+                    ${users.map(user => `<div class="user-item">${user.username}</div>`).join('')}
+                </div>
             </div>
         `;
         adminContent.appendChild(section);
+        
+        setTimeout(() => {
+            const totalBar = document.getElementById('total-bar');
+            const regularBar = document.getElementById('regular-bar');
+            if (totalBar) totalBar.style.width = '100%';
+            if (regularBar && totalUsers > 0) regularBar.style.width = `${(regularUsers / totalUsers) * 100}%`;
+        }, 100);
     }
     
     function showPostScripts() {
