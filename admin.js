@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let encoded = str.split('').map(char => String.fromCharCode(char.charCodeAt(0) + secret)).join('');
         return btoa(encoded.split('').reverse().join(''));
     };
-
     const adminPasscode = toughEncode('luauadmin$$123');
 
     if (sessionStorage.getItem('loggedInUser') !== 'realalex') {
@@ -37,9 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    function loadInitialContent() {
-        showVerifyAccounts();
-    }
+    function loadInitialContent() { showVerifyAccounts(); }
 
     navButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -54,80 +51,107 @@ document.addEventListener('DOMContentLoaded', () => {
     function showVerifyAccounts() {
         adminContent.innerHTML = '';
         const users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        const totalUsers = users.length;
-        const adminUsers = users.filter(u => u.username === 'realalex').length;
-        const regularUsers = totalUsers - adminUsers;
+        const admins = users.filter(u => u.role === 'admin').length;
+        const mods = users.filter(u => u.role === 'mod').length;
 
         const section = document.createElement('div');
         section.innerHTML = `
             <h2>Account Statistics</h2>
-            <div class="stats-container">
-                <div class="stat-item">
-                    <label>Total Accounts</label>
-                    <div class="bar-background">
-                        <div class="bar" id="total-bar"><span>${totalUsers}</span></div>
-                    </div>
-                </div>
-                 <div class="stat-item">
-                    <label>Regular Users</label>
-                    <div class="bar-background">
-                        <div class="bar" id="regular-bar"><span>${regularUsers}</span></div>
-                    </div>
-                </div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="value">${users.length}</div><div class="label">Total Accounts</div></div>
+                <div class="stat-card"><div class="value">${admins}</div><div class="label">Admins</div></div>
+                <div class="stat-card"><div class="value">${mods}</div><div class="label">Mods</div></div>
             </div>
             <div class="user-list-container">
                 <h3>Registered Usernames</h3>
-                <div class="user-list">
-                    ${users.map(user => `<div class="user-item">${user.username}</div>`).join('')}
+                <div class="user-list">${users.map(user => `
+                    <div class="user-item">
+                        <span>
+                            ${user.username}
+                            ${user.role === 'admin' ? '<span class="role-badge">Admin</span>' : ''}
+                            ${user.role === 'mod' ? '<span class="role-badge mod">Mod</span>' : ''}
+                        </span>
+                        ${user.username !== 'realalex' ? `
+                        <div class="user-actions">
+                            <button class="user-actions-button">&vellip;</button>
+                            <div class="actions-dropdown">
+                                <button class="role-change-btn" data-username="${user.username}" data-role="admin">Make Admin</button>
+                                <button class="role-change-btn" data-username="${user.username}" data-role="mod">Make Mod</button>
+                                <button class="role-change-btn" data-username="${user.username}" data-role="user">Make User</button>
+                            </div>
+                        </div>` : ''}
+                    </div>`).join('')}
                 </div>
             </div>
         `;
         adminContent.appendChild(section);
-        
-        setTimeout(() => {
-            const totalBar = document.getElementById('total-bar');
-            const regularBar = document.getElementById('regular-bar');
-            if (totalBar) totalBar.style.width = '100%';
-            if (regularBar && totalUsers > 0) regularBar.style.width = `${(regularUsers / totalUsers) * 100}%`;
-        }, 100);
+        attachUserActionListeners();
     }
-    
+
+    function attachUserActionListeners() {
+        document.querySelectorAll('.user-actions-button').forEach(button => {
+            button.addEventListener('click', e => {
+                const dropdown = e.currentTarget.nextElementSibling;
+                const isVisible = dropdown.style.display === 'block';
+                document.querySelectorAll('.actions-dropdown').forEach(d => d.style.display = 'none');
+                dropdown.style.display = isVisible ? 'none' : 'block';
+            });
+        });
+        document.querySelectorAll('.role-change-btn').forEach(button => {
+            button.addEventListener('click', e => {
+                const username = e.target.dataset.username;
+                const role = e.target.dataset.role;
+                let users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
+                const userIndex = users.findIndex(u => u.username === username);
+                if (userIndex !== -1) {
+                    users[userIndex].role = role;
+                    localStorage.setItem('alex-script-users', JSON.stringify(users));
+                    showVerifyAccounts();
+                }
+            });
+        });
+    }
+
     function showPostScripts() {
         adminContent.innerHTML = '';
-        const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
-        
         const section = document.createElement('div');
         section.innerHTML = `
             <h2>Post a New Script</h2>
             <form id="post-script-form">
-                <div class="form-group">
-                    <label for="script-name">Script Title:</label>
-                    <input type="text" id="script-name" required>
-                </div>
-                 <div class="form-group">
-                    <label for="script-description">Script Description:</label>
-                    <textarea id="script-description" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="script-category">Category:</label>
-                    <select id="script-category">
-                        ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                    </select>
-                </div>
-                 <div class="form-group">
-                    <label for="new-category">Or Add New Category:</label>
-                    <input type="text" id="new-category" placeholder="Leave blank to use existing">
-                </div>
-                <div class="form-group">
-                    <label for="script-code">Script Code:</label>
-                    <textarea id="script-code" required></textarea>
-                </div>
+                <div class="form-group"><label for="script-name">Script Title:</label><input type="text" id="script-name" required></div>
+                <div class="form-group"><label for="script-description">Script Description:</label><textarea id="script-description" required></textarea></div>
+                <div class="form-group"><label for="script-category">Category:</label><select id="script-category"></select></div>
+                <div class="form-group"><label for="new-category">Or Add New Category:</label><input type="text" id="new-category" placeholder="Leave blank to use existing"></div>
+                <div class="form-group"><label for="script-code">Script Code:</label><textarea id="script-code" required></textarea></div>
                 <button type="submit" class="submit-btn">Post Script</button>
             </form>
+            <div class="category-management"><h2>Manage Categories</h2><div id="category-list"></div></div>
         `;
         adminContent.appendChild(section);
-
+        populateCategories();
         document.getElementById('post-script-form').addEventListener('submit', handleScriptPost);
+    }
+    
+    function populateCategories() {
+        const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
+        const select = document.getElementById('script-category');
+        const list = document.getElementById('category-list');
+        select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        list.innerHTML = categories.map(cat => `
+            <div class="category-item">
+                <span>${cat}</span>
+                <button class="remove-category-btn" data-category="${cat}">Remove</button>
+            </div>
+        `).join('');
+        document.querySelectorAll('.remove-category-btn').forEach(button => {
+            button.addEventListener('click', e => {
+                const categoryToRemove = e.target.dataset.category;
+                let currentCategories = JSON.parse(localStorage.getItem('script-categories')) || [];
+                currentCategories = currentCategories.filter(c => c !== categoryToRemove);
+                localStorage.setItem('script-categories', JSON.stringify(currentCategories));
+                populateCategories();
+            });
+        });
     }
 
     function handleScriptPost(e) {
@@ -139,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedCategory = document.getElementById('script-category').value;
         
         if (newCategory) {
-            let categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
+            let categories = JSON.parse(localStorage.getItem('script-categories')) || [];
             if (!categories.includes(newCategory)) {
                 categories.push(newCategory);
                 localStorage.setItem('script-categories', JSON.stringify(categories));
@@ -148,17 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const scripts = JSON.parse(localStorage.getItem('posted-scripts')) || [];
-        scripts.unshift({
-            name,
-            description,
-            code,
-            category: selectedCategory,
-            id: Date.now()
-        });
+        scripts.unshift({ name, description, code, category: selectedCategory, id: Date.now() });
         localStorage.setItem('posted-scripts', JSON.stringify(scripts));
         
         alert('Script posted successfully!');
         e.target.reset();
         showPostScripts();
     }
-});
+});```
+
+*The response is too long. I will provide the main page and new message files in the next response.*
