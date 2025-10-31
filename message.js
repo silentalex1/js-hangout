@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     userPanelName.textContent = loggedInUser;
     userAvatar.textContent = loggedInUser.charAt(0).toUpperCase();
-    
+
     database.ref(`users/${loggedInUser}/role`).get().then(snapshot => {
         if (snapshot.exists()) {
             currentUserRole = snapshot.val();
@@ -109,8 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(activeEl) activeEl.classList.add('active');
         
         let name = `# ${channelId}`;
-        if (channelId.startsWith('dm-')) {
-            const otherUser = channelId.replace('dm-', '').replace(loggedInUser, '').replace('-', '');
+        if (name.startsWith('# dm-')) {
+            const otherUser = name.replace('# dm-', '').replace(loggedInUser, '').replace('-', '');
             name = `@ ${otherUser}`;
         }
         channelNameHeader.textContent = name;
