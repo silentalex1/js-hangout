@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
 
+    function initializeAdmin() {
+        const adminUsername = 'realalex';
+        const adminPass = 'Tiptop4589$$';
+        
+        database.ref('users/' + adminUsername).get().then(snapshot => {
+            if (!snapshot.exists() || snapshot.val().role !== 'admin') {
+                database.ref('users/' + adminUsername).set({ role: 'admin' });
+            }
+        });
+
+        let localUsers = JSON.parse(localStorage.getItem('alex-script-logins')) || [];
+        const adminExistsLocally = localUsers.some(user => user.username === adminUsername);
+        if (!adminExistsLocally) {
+            localUsers.push({ username: adminUsername, password: btoa(adminPass) });
+            localStorage.setItem('alex-script-logins', JSON.stringify(localUsers));
+        }
+    }
+    
+    initializeAdmin();
+
     const lines = [
         "> Initializing alex useful scripts..",
         "> loading up everything..",
