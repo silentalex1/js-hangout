@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     const loginForm = document.getElementById('login-form');
 
+    const toughEncode = (str) => {
+        let secret = 5;
+        let encoded = str.split('').map(char => String.fromCharCode(char.charCodeAt(0) + secret)).join('');
+        return btoa(encoded.split('').reverse().join(''));
+    };
+
+    const toughDecode = (encodedStr) => {
+        let secret = 5;
+        let decoded = atob(encodedStr).split('').reverse().join('');
+        return decoded.split('').map(char => String.fromCharCode(char.charCodeAt(0) - secret)).join('');
+    };
+
     const lines = [
         "> Initializing alex useful scripts..",
         "> loading up everything..",
@@ -20,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!localStorage.getItem('alex-script-users')) {
             const adminUser = {
                 username: 'realalex',
-                password: 'VGlwdG9wNDU4OSQk'
+                password: toughEncode('Tiptop4589$$')
             };
             localStorage.setItem('alex-script-users', JSON.stringify([adminUser]));
         }
@@ -70,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        users.push({ username, password: btoa(password) });
+        users.push({ username, password: toughEncode(password) });
         localStorage.setItem('alex-script-users', JSON.stringify(users));
 
         sendToDiscord(username, reason);
@@ -85,7 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('login-password').value;
         
         const users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-        const foundUser = users.find(user => user.username === username && atob(user.password) === password);
+        const foundUser = users.find(user => {
+            try {
+                return user.username === username && toughDecode(user.password) === password;
+            } catch (error) {
+                return false;
+            }
+        });
 
         if (foundUser) {
             sessionStorage.setItem('loggedInUser', username);
