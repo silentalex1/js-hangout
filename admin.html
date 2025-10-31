@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div id="passcode-overlay">
+        <div class="passcode-box">
+            <h2>Admin Access</h2>
+            <p>enter admin passcode to access:</p>
+            <form id="passcode-form">
+                <input type="password" id="admin-passcode" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+        <nav class="sidebar">
+            <h3>Admin Menu</h3>
+            <button class="nav-button active" data-target="verify-accounts">check verify accounts</button>
+            <button class="nav-button" data-target="post-scripts">+ post scripts</button>
+        </nav>
+        <main id="admin-content">
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
