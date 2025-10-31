@@ -117,13 +117,6 @@ body {
     width: calc(100% - 250px);
 }
 
-.content-section {
-    display: none;
-}
-.content-section.visible {
-    display: block;
-}
-
 .content-section h2 {
     font-size: 2rem;
     margin-bottom: 20px;
@@ -131,8 +124,46 @@ body {
     padding-bottom: 10px;
 }
 
-.user-list, .form-group {
-    margin-top: 20px;
+.stats-container {
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    margin-bottom: 15px;
+}
+.stat-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+.stat-item .bar-background {
+    background-color: var(--input-bg);
+    border-radius: 5px;
+    overflow: hidden;
+    height: 30px;
+}
+.stat-item .bar {
+    background-color: var(--accent-color);
+    height: 100%;
+    width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: width 1s ease-out;
+}
+
+.user-list-container h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.user-list {
+    max-height: 40vh;
+    overflow-y: auto;
 }
 
 .user-item {
@@ -160,11 +191,6 @@ body {
     font-size: 1em;
 }
 
-.form-group textarea {
-    min-height: 150px;
-    font-family: 'Roboto Mono', monospace;
-}
-
 .submit-btn {
     padding: 15px 30px;
     background-color: var(--accent-color);
@@ -177,4 +203,10 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+@media (max-width: 768px) {
+    #admin-panel { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--border-color); }
+    #admin-content { margin-left: 0; width: 100%; padding: 20px; }
 }
