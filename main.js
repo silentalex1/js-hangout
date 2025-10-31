@@ -22,11 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
     });
 
+    adminBtn.addEventListener('click', () => {
+        window.location.href = 'admin.html';
+    });
+
     function loadScripts() {
         const categories = JSON.parse(localStorage.getItem('script-categories')) || ['Lua/luau scripts', 'JS Bookmarklet scripts', 'Website projects'];
         const scripts = JSON.parse(localStorage.getItem('posted-scripts')) || [];
 
-        scriptsContainer.innerHTML = '<h1>Scripts</h1>';
+        const scriptsContent = document.createElement('div');
 
         categories.forEach(category => {
             const categoryScripts = scripts.filter(script => script.category === category);
@@ -47,9 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     categorySection.appendChild(scriptItem);
                 });
 
-                scriptsContainer.appendChild(categorySection);
+                scriptsContent.appendChild(categorySection);
             }
         });
+        
+        const h1 = scriptsContainer.querySelector('h1');
+        scriptsContainer.innerHTML = '';
+        scriptsContainer.appendChild(h1);
+        scriptsContainer.appendChild(scriptsContent);
     }
 
     loadScripts();
