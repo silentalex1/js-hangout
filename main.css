@@ -7,7 +7,7 @@
     --primary-text: #e0e0e0;
     --border-color: #404249;
     --accent-color: #5865F2;
-    --success-color: #28a745;
+    --success-color: #2dc770;
     --logout-red: #dc3545;
 }
 
@@ -65,10 +65,11 @@ body {
 #admin-btn { background-color: var(--accent-color); }
 #admin-btn:hover { background-color: #4752c4; }
 .message { background-color: var(--success-color); }
-.message:hover { background-color: #218838; }
+.message:hover { background-color: #26a25b; }
 .logout { background-color: var(--logout-red); }
 .logout:hover { background-color: #c82333; }
 
+/* All other previous styles for script cards and modals remain the same */
 .container {
     max-width: 1200px;
     margin: 0 auto;
