@@ -18,12 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     usernameDisplay.textContent = loggedInUser;
 
-    let users = JSON.parse(localStorage.getItem('alex-script-users')) || [];
-    const currentUser = users.find(u => u.username === loggedInUser);
-
-    if (currentUser && currentUser.role === 'admin') {
-        adminBtn.classList.remove('hidden');
-    }
+    database.ref(`users/${loggedInUser}/role`).get().then(snapshot => {
+        if (snapshot.exists() && snapshot.val() === 'admin') {
+            adminBtn.classList.remove('hidden');
+        }
+    });
 
     logoutBtn.addEventListener('click', () => {
         sessionStorage.removeItem('loggedInUser');
@@ -54,16 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoryScripts = scripts.filter(s => s.category === category);
             if (categoryScripts.length === 0) return;
 
-            const mainCategoryContainer = document.createElement('div');
-            mainCategoryContainer.className = 'category-main-container open';
-            
-            mainCategoryContainer.innerHTML = `
-                <div class="category-header">
-                    <h2>${category}</h2>
-                    <span class="category-toggle">▼</span>
-                </div>
+            const categoryContainer = document.createElement('div');
+            categoryContainer.className = 'category-main-container open';
+
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerHTML = `
+                <h2>${category}</h2>
+                <span class="category-toggle">▼</span>
             `;
-            
+            header.addEventListener('click', () => {
+                categoryContainer.classList.toggle('open');
+            });
+
             const childrenContainer = document.createElement('div');
             childrenContainer.className = 'category-children';
 
@@ -81,12 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 childrenContainer.appendChild(scriptCard);
             });
             
-            mainCategoryContainer.appendChild(childrenContainer);
-            scriptsContainer.appendChild(mainCategoryContainer);
-            
-            mainCategoryContainer.querySelector('.category-header').addEventListener('click', () => {
-                mainCategoryContainer.classList.toggle('open');
-            });
+            categoryContainer.appendChild(header);
+            categoryContainer.appendChild(childrenContainer);
+            scriptsContainer.appendChild(categoryContainer);
         });
 
         attachScriptButtonListeners();
