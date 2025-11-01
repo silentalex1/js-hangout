@@ -9,14 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
+    const loginBtn = loginForm.querySelector('.form-btn');
+    const registerBtn = registerForm.querySelector('.form-btn');
 
-    function initializeAdmin() {
+    async function initializeSystem() {
+        loginBtn.disabled = true;
+        registerBtn.disabled = true;
+
         const adminUsername = 'realalex';
         const adminPass = 'Tiptop4589$$';
         
-        database.ref('users/' + adminUsername).get().then(snapshot => {
+        await database.ref('users/' + adminUsername).get().then(snapshot => {
             if (!snapshot.exists() || snapshot.val().role !== 'admin') {
-                database.ref('users/' + adminUsername).set({ role: 'admin' });
+                return database.ref('users/' + adminUsername).set({ role: 'admin' });
             }
         });
 
@@ -26,9 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
             localUsers.push({ username: adminUsername, password: btoa(adminPass) });
             localStorage.setItem('alex-script-logins', JSON.stringify(localUsers));
         }
+        
+        loginBtn.disabled = false;
+        registerBtn.disabled = false;
     }
     
-    initializeAdmin();
+    initializeSystem();
 
     const lines = [
         "> Initializing alex useful scripts..",
@@ -71,12 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         registerError.textContent = '';
+        registerBtn.disabled = true;
+        
         const username = document.getElementById('register-username').value.trim();
         const password = document.getElementById('register-password').value;
         const reason = document.getElementById('find-reason').value;
 
         if (username.length < 3) {
             registerError.textContent = 'Username must be at least 3 characters.';
+            registerBtn.disabled = false;
             return;
         }
 
@@ -84,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usersRef.get().then((snapshot) => {
             if (snapshot.exists()) {
                 registerError.textContent = 'Username is already taken.';
+                registerBtn.disabled = false;
             } else {
                 usersRef.set({ role: 'user' });
                 
@@ -101,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         loginError.textContent = '';
+        loginBtn.disabled = true;
+
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
         
@@ -112,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'main.html';
         } else {
             loginError.textContent = 'Invalid username or password.';
+            loginBtn.disabled = false;
         }
     });
 
