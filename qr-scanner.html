@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Code</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body style="padding: 20px;">
+    <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 20px auto;"></div>
+    <div id="qr-reader-results" style="text-align: center; font-size: 1.2em; margin-top: 20px;"></div>
+    <a href="admin.html" class="back-link">Back to Admin Panel</a>
+
+    <style>
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: var(--accent-color);
+            font-size: 1.1em;
+        }
+    </style>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="qr-scanner.js"></script>
+</body>
+</html>
