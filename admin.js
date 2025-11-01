@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const passcodeForm = document.getElementById('passcode-form');
     const adminContent = document.getElementById('admin-content');
     const navButtons = document.querySelectorAll('.nav-button');
+    const qrCodeContainer = document.getElementById('qrcode');
+    const submitBtn = document.getElementById('submit-passcode-btn');
+
+    let currentLoginToken = null;
 
     const toughEncode = (str) => {
         let secret = 5;
@@ -28,6 +32,25 @@ document.addEventListener('DOMContentLoaded', () => {
         passcodeOverlay.classList.add('hidden');
         adminPanel.classList.remove('hidden');
         loadInitialContent();
+    } else {
+        generateAndListenForToken();
+    }
+
+    function generateAndListenForToken() {
+        currentLoginToken = 'token_' + Math.random().toString(36).substr(2, 9);
+        new QRCode(qrCodeContainer, currentLoginToken);
+
+        const tokenRef = database.ref(`loginTokens/${currentLoginToken}`);
+        tokenRef.set({ status: 'pending', createdAt: new Date().toISOString() });
+        
+        tokenRef.on('value', (snapshot) => {
+            if (snapshot.exists() && snapshot.val().status === 'approved') {
+                submitBtn.disabled = false;
+                submitBtn.style.backgroundColor = 'var(--accent-color)';
+                qrCodeContainer.innerHTML = '<p style="color: var(--success-color);">Authorized!</p>';
+                tokenRef.off();
+            }
+        });
     }
 
     passcodeForm.addEventListener('submit', (e) => {
@@ -35,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('admin-passcode').value;
         if (toughEncode(input) === adminPasscode) {
             sessionStorage.setItem('adminAuthenticated', 'true');
+            database.ref(`loginTokens/${currentLoginToken}`).remove();
             passcodeOverlay.classList.add('hidden');
             adminPanel.classList.remove('hidden');
             loadInitialContent();
@@ -42,17 +66,19 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Incorrect passcode.');
         }
     });
-    
+
     function loadInitialContent() { showVerifyAccounts(); }
 
     navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            const target = button.getAttribute('data-target');
-            if (target === 'verify-accounts') showVerifyAccounts();
-            else if (target === 'post-scripts') showPostScripts();
-        });
+        const target = button.getAttribute('data-target');
+        if (target) {
+            button.addEventListener('click', () => {
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                if (target === 'verify-accounts') showVerifyAccounts();
+                else if (target === 'post-scripts') showPostScripts();
+            });
+        }
     });
 
     function showVerifyAccounts() {
@@ -76,8 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="user-list-container">
                     <h3>Registered Usernames</h3>
                     <div class="user-list"></div>
-                </div>
-            `;
+                </div>`;
             
             const userListHTML = userList.map(([username, data]) => `
                 <div class="user-item">
@@ -122,76 +147,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         });
-    }
-
-    function showPostScripts() {
-        adminContent.innerHTML = '';
-        const section = document.createElement('div');
-        section.innerHTML = `
-            <h2>Post a New Script</h2>
-            <form id="post-script-form">
-                <div class="form-group"><label for="script-name">Script Title:</label><input type="text" id="script-name" required></div>
-                <div class="form-group"><label for="script-description">Script Description:</label><textarea id="script-description" required></textarea></div>
-                <div class="form-group"><label for="script-category">Category:</label><select id="script-category"></select></div>
-                <div class="form-group"><label for="new-category">Or Add New Category:</label><input type="text" id="new-category" placeholder="Leave blank to use existing"></div>
-                <div class="form-group"><label for="script-code">Script Code:</label><textarea id="script-code" required></textarea></div>
-                <button type="submit" class="submit-btn">Post Script</button>
-            </form>
-            <div class="category-management"><h2>Manage Categories</h2><div id="category-list"></div></div>
-        `;
-        adminContent.appendChild(section);
-        populateCategories();
-        document.getElementById('post-script-form').addEventListener('submit', handleScriptPost);
-    }
-    
-    function populateCategories() {
-        const categories = JSON.parse(localStorage.getItem('script-categories')) || ['lua/luau scripts', 'JS Bookmarklets', 'Website projects'];
-        const select = document.getElementById('script-category');
-        const list = document.getElementById('category-list');
-        if (!select || !list) return;
-
-        select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-        list.innerHTML = categories.map(cat => `
-            <div class="category-item">
-                <span>${cat}</span>
-                <button class="remove-category-btn" data-category="${cat}">Remove</button>
-            </div>
-        `).join('');
-
-        document.querySelectorAll('.remove-category-btn').forEach(button => {
-            button.addEventListener('click', e => {
-                const categoryToRemove = e.target.dataset.category;
-                let currentCategories = JSON.parse(localStorage.getItem('script-categories')) || [];
-                currentCategories = currentCategories.filter(c => c !== categoryToRemove);
-                localStorage.setItem('script-categories', JSON.stringify(currentCategories));
-                populateCategories();
-            });
-        });
-    }
-
-    function handleScriptPost(e) {
-        e.preventDefault();
-        const name = document.getElementById('script-name').value;
-        const description = document.getElementById('script-description').value;
-        const code = document.getElementById('script-code').value;
-        const newCategory = document.getElementById('new-category').value.trim();
-        let selectedCategory = document.getElementById('script-category').value;
-        
-        if (newCategory) {
-            let categories = JSON.parse(localStorage.getItem('script-categories')) || [];
-            if (!categories.includes(newCategory)) {
-                categories.push(newCategory);
-                localStorage.setItem('script-categories', JSON.stringify(categories));
-            }
-            selectedCategory = newCategory;
-        }
-
-        const scripts = JSON.parse(localStorage.getItem('posted-scripts')) || [];
-        scripts.unshift({ name, description, code, category: selectedCategory, id: Date.now() });
-        localStorage.setItem('posted-scripts', JSON.stringify(scripts));
-        
-        alert('Script posted successfully!');
-        e.target.reset();
-        showPostScripts();
     }
 });
