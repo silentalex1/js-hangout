@@ -10,10 +10,13 @@
     <div id="passcode-overlay">
         <div class="passcode-box">
             <h2>Admin Access</h2>
-            <p>enter admin passcode to access:</p>
+            <div id="qrcode-container">
+                <div id="qrcode"></div>
+                <p>Scan with an authorized device to enable login.</p>
+            </div>
             <form id="passcode-form">
-                <input type="password" id="admin-passcode" required>
-                <button type="submit">Submit</button>
+                <input type="password" id="admin-passcode" placeholder="enter admin passcode..." required>
+                <button type="submit" id="submit-passcode-btn" disabled>Submit</button>
             </form>
         </div>
     </div>
@@ -23,11 +26,13 @@
             <h3>Admin Menu</h3>
             <button class="nav-button active" data-target="verify-accounts">check verify accounts</button>
             <button class="nav-button" data-target="post-scripts">+ post scripts</button>
+            <a href="qr-scanner.html" class="nav-button">QR Code Access</a>
         </nav>
         <main id="admin-content">
         </main>
     </div>
 
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="firebase-config.js"></script>
