@@ -109,6 +109,7 @@ body {
     transition: background-color 0.3s;
 }
 .form-btn:hover { background-color: #0056b3; }
+.form-btn:disabled { background-color: var(--border-color); cursor: not-allowed; }
 
 .form-switch { text-align: center; margin-top: 20px; font-size: 0.9em; }
 .form-switch span { color: var(--accent-color); cursor: pointer; font-weight: 600; }
